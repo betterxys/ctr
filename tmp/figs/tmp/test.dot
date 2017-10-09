@@ -1,0 +1,22 @@
+digraph graph_name {
+    
+  // node define
+  alpha [shape = box];
+  beta [shape = box];
+  gamma [shape = Msquare];
+  delta [shape = box];
+  epsilon [shape = trapezium];
+  zeta [shape = Msquare];
+  eta;
+  theta [shape = doublecircle];
+
+  // edge define
+  alpha -> beta [label = "a-b", arrowhead = normal];
+  alpha -> gamma [label = "a-g"];
+  beta -> delta [label = "b-d"];
+  beta -> epsilon [label = "b-e", arrowhead = tee];
+  gamma -> zeta [label = "g-z"];
+  gamma -> eta [label = "g-e", style = dotted];
+  delta -> theta [arrowhead = crow];
+  zeta -> theta [arrowhead = crow];
+}

@@ -1,0 +1,22 @@
+digraph ctr_sys {
+
+
+	全连接的隐含层 [shape="box"]
+	注意力机制 [shape="box"]
+	sigmoid [shape="box"]
+
+	原始特征 -> 离散特征 
+	原始特征 -> 连续特征 [style="dotted"]
+	连续特征 -> 离散特征 [label="离散化", style="dotted"]
+	离散特征 -> 高维稀疏特征 [label="独热编码"]
+	高维稀疏特征 -> 低维密集特征 [label="(field) embedding"]
+	低维密集特征 -> 全连接的隐含层[style="dotted"]
+	低维密集特征 -> 低阶交叉特征 [label="(field)点乘/叉乘" ]
+	//低阶交叉特征 -> sigmoid [label="", style="dotted"]
+	//低维密集特征 -> 高阶交叉特征 [label="", style="dotted"]
+	低阶交叉特征 -> 全连接的隐含层[label=""]
+	注意力机制 -> 全连接的隐含层[label="", style="dotted"]
+	全连接的隐含层 -> sigmoid
+	低阶交叉特征 -> sigmoid[style="dotted"]
+	sigmoid -> CTR
+}

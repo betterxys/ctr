@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+  <h1 id="deep-learning-over-multi-field-categorical-data">
+   Deep Learning over Multi-field Categorical Data
+  </h1>
+  <p>
+   本文提出两种模型旨在解决现有模型需要手动生成交叉特征、难以充分学习到高阶交叉特征的问题。
+  </p>
+  <p>
+   本文拟解决问题：
+   <strong>
+    CTR预估过程中高维离散属性带来的计算复杂问题
+   </strong>
+  </p>
+  <p>
+   feature works:
+  </p>
+  <ul>
+   <li>
+    使用 momentum 方法训练 DNN
+   </li>
+   <li>
+    本文FNN采用的 partial 连接方式可以尝试扩展到更高层，因为这种方式计算更简单，模型更鲁棒，更像人脑
+   </li>
+  </ul>
+  <h2 id="factorisation-machine-supported-neural-network-fnn">
+   Factorisation Machine supported Neural Network (FNN)
+  </h2>
+  <h3 id="fnn">
+   FNN 结构
+  </h3>
+  <p>
+   <img alt="" height="500" src="https://betterxys.github.io/styles/images/ctrfigs/FNN.png"/>
+  </p>
+  <p>
+   Output Layer:
+  </p>
+  <p>
+   <mathjax>
+    $$
+\hat{y} = sigmoid(W_3l_2 + b_3)
+$$
+   </mathjax>
+  </p>
+  <p>
+   Hidden Layer:
+  </p>
+  <p>
+   <mathjax>
+    $$
+l_i = tanh(W_il_{i-1} + b_i)
+$$
+   </mathjax>
+  </p>
+  <p>
+   <mathjax>
+    $$
+l_0 = (w_0, z_1, z_2,...,z_n)
+$$
+   </mathjax>
+  </p>
+  <p>
+   Dense Real Layer: 将高维稀疏向量转换为低维连续向量；
+  </p>
+  <p>
+   对于 \( filed_i \) , 若设定embedding的个数为k，\( W_0^i \) 的形状是 \((k+1, end_i-start_i)\),  则有:
+   <br/>
+   <mathjax>
+    $$
+z_i = W_0^i \cdot x[start_i : end_i]
+= (w_i, v_i^1, v_i^2, ... , v_i^k)
+$$
+   </mathjax>
+  </p>
+  <h3 id="fnn_1">
+   FNN 训练流程
+  </h3>
+  <ul>
+   <li>
+    使用SGD训练FM模型，用FM的embedding初始化Dense Real Layer的权重;
+   </li>
+   <li>
+    采用基于 contrastive divergence 方法的 layer-wise RBM pre-traing 初始化Hidden Layer的参数;
+   </li>
+   <li>
+    fine-tuning with back propagation
+   </li>
+  </ul>
+  <h2 id="sampling-based-neural-network-snn">
+   Sampling-based Neural Network (SNN)
+  </h2>
+  <h3 id="snn">
+   SNN的结构
+  </h3>
+  <p>
+   <img alt="" height="500" src="https://betterxys.github.io/styles/images/ctrfigs/snn_all.png"/>
+  </p>
+  <p>
+   SNN与FNN的区别有两点：
+  </p>
+  <ul>
+   <li>
+    <p>
+     SNN的第一层是全连接的，而FNN的第一层是基于Field进行b部分连接的;
+    </p>
+   </li>
+   <li>
+    <p>
+     SNN的第一层权重初始化采用 Sampling-based RBM/DAE， 而FNN的第一层权重初始化需要进行FM的预训练;
+    </p>
+   </li>
+  </ul>
+  <p>
+   此外，本文 SNN 所谓 Sampling based 是指，选中 one hot 的向量中非零的一项， 再选中 m 个值为零的项参与训练，如此一来可以减小训练复杂度;
+  </p>
+  <h2 id="_1">
+   实验验证
+  </h2>
+  <p>
+   采用 IPinYou 的数据，共计 19.50M 样例, 14.79K 正例，onehot后共有 937.67K 的 binary features.
+  </p>
+  <p>
+   与LR和FM进行对比，参数设置如下：
+  </p>
+  <ul>
+   <li>
+    <p>
+     抑制 overfitting 措施
+    </p>
+    <ul>
+     <li>
+      early stopping
+     </li>
+     <li>
+      对比了 L2 regularisation 和 dropout, 其中 dropout 是最优的
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     learning rate
+     <br/>
+     比较了[1, 0.1, 0.01, 0.001, 0.0001]
+    </p>
+   </li>
+   <li>
+    <p>
+     Sample number
+     <br/>
+     比较了[1, 2, 4], m=2是最好的
+    </p>
+   </li>
+   <li>
+    <p>
+     active function
+     <br/>
+     比较了[linear, sigmoid, tanh], tanh是最好的
+    </p>
+   </li>
+   <li>
+    <p>
+     hidden layer structure
+    </p>
+    <ul>
+     <li>
+      architecture: 比较了[diamond, constant, increasing, decreading], 其中 diamod(200,300,100) 是最好的;
+     </li>
+    </ul>
+   </li>
+  </ul>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>

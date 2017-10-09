@@ -1,0 +1,861 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+  <h1 id="ctr">
+   CTR综述
+  </h1>
+  <div class="toc">
+   <ul>
+    <li>
+     <a href="#ctr">
+      CTR综述
+     </a>
+     <ul>
+      <li>
+       <a href="#ctr_1">
+        CTR的应用场景
+       </a>
+      </li>
+      <li>
+       <a href="#ctr_2">
+        CTR的难点
+       </a>
+      </li>
+      <li>
+       <a href="#_1">
+        现有方法的研究方向
+       </a>
+      </li>
+      <li>
+       <a href="#_2">
+        提取交叉特征的方法
+       </a>
+      </li>
+      <li>
+       <a href="#ctr_3">
+        CTR的主流技术
+       </a>
+      </li>
+      <li>
+       <a href="#ct">
+        CT预测总体流程
+       </a>
+      </li>
+      <li>
+       <a href="#_3">
+        参考文献
+       </a>
+      </li>
+     </ul>
+    </li>
+   </ul>
+  </div>
+  <hr/>
+  <h2 id="ctr_1">
+   CTR的应用场景
+  </h2>
+  <p>
+   CTR主要应用在广告系统和推荐系统当中，其目的在于预估出用户点击相应广告/推荐物品的概率。
+  </p>
+  <p>
+   CTR在推荐系统中的应用方式主要有两种：
+  </p>
+  <ol>
+   <li>
+    <p>
+     推荐列表依据 \( CTR \) 的值进行排序
+    </p>
+   </li>
+   <li>
+    <p>
+     推荐列表依据 \( CTR*bid \) 的值进行排序（ \(bid\)是指如果用户点击该推荐，商家可以获得的收益）
+    </p>
+   </li>
+  </ol>
+  <p>
+   CTR在广告系统中的应用也是类似，平台会根据广告收益和CTR的值对广告进行排序。
+  </p>
+  <h2 id="ctr_2">
+   CTR的难点
+  </h2>
+  <ol>
+   <li>
+    <p>
+     难以发掘有效的交叉特征：
+    </p>
+    <ul>
+     <li>
+      <p>
+       高阶特征本身发掘难度较大，只能通过ML学习
+      </p>
+     </li>
+     <li>
+      <p>
+       低阶特征在特征维度较多时同样难以发现
+      </p>
+     </li>
+    </ul>
+   </li>
+  </ol>
+  <h2 id="_1">
+   现有方法的研究方向
+  </h2>
+  <ul>
+   <li>
+    <p>
+     更充分的提取低阶和高阶交叉特征；
+    </p>
+   </li>
+   <li>
+    <p>
+     自动提取交叉特征，很多线性模型依然需要大量的专业业务领域的知识进行人工构造；
+    </p>
+   </li>
+  </ul>
+  <h2 id="_2">
+   提取交叉特征的方法
+  </h2>
+  <ul>
+   <li>
+    FM
+   </li>
+   <li>
+    Ploylearn
+   </li>
+   <li>
+    DNN
+   </li>
+   <li>
+    GBDT
+   </li>
+  </ul>
+  <h2 id="ctr_3">
+   CTR的主流技术
+  </h2>
+  <ol>
+   <li>
+    <p>
+     Factorization machine
+     <sup id="fnref:1">
+      <a class="footnote-ref" href="#fn:1" rel="footnote">
+       1
+      </a>
+     </sup>
+     ,  2010
+     <br/>
+     <mathjax>
+      $$
+\hat{y}(x) := w_0 + 
+\sum_{i=1}^n w_i x_i +
+\sum_{i = 1}^{n} \sum_{j = i + 1}^{n} &lt;V_i, V_j&gt; x_{i} x_{j}
+$$
+     </mathjax>
+    </p>
+    <blockquote>
+     <p>
+      FM（Factorization Machine）是由Konstanz大学Steffen Rendle（现任职于Google）于2010年最早提出的，旨在解决稀疏数据下的
+      <strong>
+       自动特征组合
+      </strong>
+      问题。
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      :
+      <br/>
+      Sklearn实现了FM和ploylearn（另外一种提取低阶特征的方法）
+      <a href="https://github.com/scikit-learn-contrib/polylearn">
+       https://github.com/scikit-learn-contrib/polylearn
+      </a>
+      <br/>
+      FastFMlib:
+      <a href="https://github.com/ibayer/fastFM">
+       https://github.com/ibayer/fastFM
+      </a>
+      <br/>
+      作者Rendle在2012年用C++实现了LibFM，并发表论文
+      <sup id="fnref:14">
+       <a class="footnote-ref" href="#fn:14" rel="footnote">
+        14
+       </a>
+      </sup>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Field-aware Factorization Machine, 2012
+     <br/>
+     <mathjax>
+      $$
+\phi_{FFM}(w,x) = \sum_{j_1=1}^{n} \sum_{j_2=j_1+1}^n
+(w_{j_1, f_2} \cdot w_{j_2, f_1}) x_{j_1}x_{j_2}
+$$
+     </mathjax>
+    </p>
+    <blockquote>
+     <p>
+      FFM最初的概念来自Yu-Chin Juan（阮毓钦，毕业于中国台湾大学，现在美国Criteo工作）与其比赛队员，是他们借鉴了来自Michael Jahrer的论文
+      <sup id="fnref:3">
+       <a class="footnote-ref" href="#fn:3" rel="footnote">
+        3
+       </a>
+      </sup>
+      中的field概念提出了FM的升级版模型。通过引入field的概念，FFM把相同性质的特征归于同一个field。
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      <br/>
+      台大‘3idiots’用GBDT+FFM赢了criteo:
+      <a href="https://github.com/guestwalk/kaggle-2014-criteo">
+       https://github.com/guestwalk/kaggle-2014-criteo
+      </a>
+      <br/>
+      台大‘4idiots’（+MJ）用FFM赢了avazu:
+      <a href="https://github.com/guestwalk/kaggle-avazu">
+       https://github.com/guestwalk/kaggle-avazu
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Follow the Regularied Leader, 2013
+    </p>
+    <blockquote>
+     <p>
+      FTRL是一种基于逻辑回归的
+      <strong>
+       在线学习算法
+      </strong>
+      ,能够学习出有效且稀疏的模型。FTRL 是由 Google 的 H. Brendan McMahan 在 2010 年提出的
+      <sup id="fnref:4">
+       <a class="footnote-ref" href="#fn:4" rel="footnote">
+        4
+       </a>
+      </sup>
+      ,2013 年又和 Gary Holt, D. Sculley, Michael Young 等人发表了一篇关于 FTRL 工程化实现的论文
+      <sup id="fnref:5">
+       <a class="footnote-ref" href="#fn:5" rel="footnote">
+        5
+       </a>
+      </sup>
+      。 FTRL 算法融合了 RDA 算法能产生稀疏模型的特性和 SGD 算法能产生更有效模型的特性。它在处理诸如 LR 之类的带非光滑正则化项(例如 1 范数,做模型复杂度控制和稀疏化)的凸优化问题上性能非常出色,国内各大互联网公司都已将该算法应用到实际产品中。
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      :
+      <br/>
+      python版：
+      <a href="https://github.com/fmfn/FTRLp">
+       https://github.com/fmfn/FTRLp
+      </a>
+      <br/>
+      多线程版：
+      <a href="https://github.com/bingzhengwei/ftrl_proximal_lr">
+       https://github.com/bingzhengwei/ftrl_proximal_lr
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     GBDT + LR, 2014
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/fb-gbdt-lr.png"/>
+    </p>
+    <blockquote>
+     <p>
+      2014 年 Facebook 发表了一篇在 CTR 领域极具影响力的论文
+      <sup id="fnref:6">
+       <a class="footnote-ref" href="#fn:6" rel="footnote">
+        6
+       </a>
+      </sup>
+      ,该论文尝试提出一种解决特征组合问题的方案,基本思路是利用树模型的组合特性来自动做特征组合,结合 GBDT 训练出一些组合特征,然后再传入 LR 进行分类,该方法取得极大成功,但也有很大程度的过拟合风险,所以必须要采取相应的防止过拟合的措施。
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : AUC/NE(Normalized Entropy)/calibration(the ratio of the average estimated CTR and empirical CTR)
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      :
+      <a href="https://github.com/neal668/LightGBM-GBDT-LR">
+       https://github.com/neal668/LightGBM-GBDT-LR
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     RNN(2014)
+    </p>
+    <blockquote>
+     <p>
+      更倾向于序列数据
+      <sup id="fnref:7">
+       <a class="footnote-ref" href="#fn:7" rel="footnote">
+        7
+       </a>
+      </sup>
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : AUC/RIG compare with LR / NN
+      <br/>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     CNN(2015)
+     <sup id="fnref:8">
+      <a class="footnote-ref" href="#fn:8" rel="footnote">
+       8
+      </a>
+     </sup>
+    </p>
+    <blockquote>
+     <p>
+      更倾向于由相邻特征之间的相互作用而产生的交叉特征.
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      :
+      <br/>
+      avazu:
+      <a href="https://www.kaggle.com/c/avazu-ctr-prediction/data">
+       https://www.kaggle.com/c/avazu-ctr-prediction/data
+      </a>
+      <br/>
+      Yoochoose:
+      <a href="http://recsys.yoochoose.net">
+       http://recsys.yoochoose.net
+      </a>
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : logloss compare with LR / FM / RNN
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      :
+      <a href="https://github.com/neal668/LightGBM-GBDT-LR">
+       https://github.com/neal668/LightGBM-GBDT-LR
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Wide &amp; Deep model(2016):
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/wdm.png"/>
+    </p>
+    <blockquote>
+     <p>
+      是 2016 年 Google 开源于 TensorFlow 的一种混合网络结构
+      <sup id="fnref:2">
+       <a class="footnote-ref" href="#fn:2" rel="footnote">
+        2
+       </a>
+      </sup>
+      ,包括 wide 和 deep 两部分,其中 wide 是一个线性模型,deep 是一个深度模型, 两部分所需的输入不同,wide 依然需要预先的特征工程, 而 deep 部分不需要;其主要缺
+      <br/>
+      陷就在于 wide 部分依然需要依赖预先的特征工程；
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      :
+      <br/>
+      Google Play game center
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : AUC / online test compare with wide /  deep / wide &amp; deep
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      ： wide &amp; deep model:
+      <a href="https://www.tensorflow.org/tutorials/wide_and_deep">
+       https://www.tensorflow.org/tutorials/wide_and_deep
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Factorization-machine supported Neural Network(FNN
+     <sup id="fnref:9">
+      <a class="footnote-ref" href="#fn:9" rel="footnote">
+       9
+      </a>
+     </sup>
+     , 2016)
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/FNN.png"/>
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/snn_all.png"/>
+    </p>
+    <blockquote>
+     <p>
+      FNN 先训练 FM,然后以 FM 训练的参数对 DNN 进行初始化,继而训练 DNN 模型,该方法的缺陷在于后续 DNN 的训练可能会覆盖掉第一步 FM的预训练成果,从而导致低阶交叉特征的学习能力较差。
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      :
+      <br/>
+      iPinYou: 19.5M instances(14.79k positive), 937.67K features,
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : AUC compare with LR/FM/FNN/SNN*
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      ： FNN&amp;SNN:
+      <a href="https://github.com/wnzhang/deep-ctr">
+       https://github.com/wnzhang/deep-ctr
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Product-based Neural Network(PNN, 2016)
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/PNN.png"/>
+    </p>
+    <blockquote>
+     <p>
+      PNN(Product based Neural Network)是由上海交通大学的 YaYanru Qu 和伦敦大学的Ying Wen 等人发表的论文
+      <sup id="fnref:10">
+       <a class="footnote-ref" href="#fn:10" rel="footnote">
+        10
+       </a>
+      </sup>
+      中提出的, PNN 在 DNN 的基础之上作出改进,在 embeddinglayer 和 fully connected layer 之间增加了一个 product layer,使 PNN 具备高阶交叉特征的学习能力。
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      :
+      <br/>
+      criteo: 1T数据，选取7天训练，1天测试(79.38M instances, 1.64M features)
+      <br/>
+      iPinYou: 19.5M instances, 937.67M features, 一共10天数据，7/3分
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      : AUC &amp; RIG compare with LR/FM/FNN/CCPM/IPNN/OPNN/PNN*
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      : PNN:
+      <a href="https://github.com/Atomu2014/product-nets">
+       https://github.com/Atomu2014/product-nets
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Deep Factorization Machine(2017)
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/deepfm.png"/>
+    </p>
+    <blockquote>
+     <p>
+      DeepFM
+      <sup id="fnref:11">
+       <a class="footnote-ref" href="#fn:11" rel="footnote">
+        11
+       </a>
+      </sup>
+      是2017年华为诺亚方舟实验室提出的一种新的FM+DNN模型，该模型主要分为deep和wide两部分，deep模块使用deep learning学习高阶交叉特征，wide模块使用FM提取低阶交叉特征，deep和wide两个模块共享输入和embeddings，最终通过output layer进行结合，输出CTR。
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      ：
+      <br/>
+      Criteo(4.5million records, 13连续特征, 26离散特征)， 9：1划分；
+      <br/>
+      Company(1 billion, 7天训练, 1天测试)
+     </p>
+     <p>
+      <strong>
+       evaluation
+      </strong>
+      ： AUC &amp; Logloss compare with LR/FM/FNN/PNN/WDL/DeepFM
+     </p>
+     <p>
+      <strong>
+       Code
+      </strong>
+      : DeepFM/CCFNet/BMF:
+      <a href="https://github.com/Leavingseason/OpenLearning4DeepRecsys">
+       https://github.com/Leavingseason/OpenLearning4DeepRecsys
+      </a>
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Neural Factorization Machines(2017)
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/NFM.png"/>
+    </p>
+    <blockquote>
+     <p>
+      NFM
+      <sup id="fnref:12">
+       <a class="footnote-ref" href="#fn:12" rel="footnote">
+        12
+       </a>
+      </sup>
+      是一种新型的DNN，其本质是用DNN实现的更高阶的FM，从而增强了其非线性表达能力。
+      <br/>
+      <strong>
+       dataset
+      </strong>
+      ：
+      <br/>
+      Frappe: (288609 instances, 5382 features)；
+      <br/>
+      MovieLens: (2006859 instances, 90445 features)
+      <br/>
+      train: validation:test 9:2:1
+      <br/>
+      <strong>
+       evaluation
+      </strong>
+      ： RMSE compare with FM/High order FM/Wide&amp;Deep/DeepCross
+     </p>
+    </blockquote>
+   </li>
+   <li>
+    <p>
+     Attention Factorization Machines(2017)
+     <br/>
+     <img alt="" height="300" src="https://betterxys.github.io/styles/images/ctrfigs/AFM.png"/>
+    </p>
+    <blockquote>
+     <p>
+      AFM模型
+      <sup id="fnref:13">
+       <a class="footnote-ref" href="#fn:13" rel="footnote">
+        13
+       </a>
+      </sup>
+      是NFM的一种改进模型。在传统FM模型中，使用二阶交叉特征得到非线性表达能力，但是不是所有的特征交叉都会有预测能力，很多无用的特征交叉加入后反而会相当于加入了噪声，因此，在AFM模型中，加入了Attention Net机制，旨在去降低噪声特征的干扰。
+     </p>
+     <p>
+      <strong>
+       dataset
+      </strong>
+      ：
+      <br/>
+      Frappe: (288609 instances, 5382 features)；
+      <br/>
+      MovieLens: (2006859 instances, 90445 features)
+      <br/>
+      train: validation:test 9:2:1
+      <br/>
+      <strong>
+       evaluation
+      </strong>
+      ： RMSE compare with FM/High order FM/Wide&amp;Deep/DeepCross
+     </p>
+     <p>
+      <strong>
+       CODE
+      </strong>
+      :
+      <a href="https://github">
+       https://github
+      </a>
+      .
+      <br/>
+      com/hexiangnan/attentional factorization machine
+     </p>
+    </blockquote>
+   </li>
+  </ol>
+  <h2 id="ct">
+   CT预测总体流程
+  </h2>
+  <p>
+   <img alt="" height="700" src="https://betterxys.github.io/styles/images/ctrfigs/ctr_flow.png"/>
+  </p>
+  <p>
+   通常， CTR预测包括如下流程：
+  </p>
+  <ul>
+   <li>
+    <p>
+     特征预处理
+    </p>
+    <ul>
+     <li>
+      <p>
+       连续特征标准化
+      </p>
+     </li>
+     <li>
+      <p>
+       连续特征离散化(离散特征更易于提取交叉特征)
+      </p>
+     </li>
+     <li>
+      <p>
+       离散特征二值化
+      </p>
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     embedding layer
+    </p>
+    <ul>
+     <li>
+      借鉴FM/FFM的思路，将每个feature/field转化为embedding向量(降维同时变稀疏为密集)
+     </li>
+     <li>
+      或者 hash trick(FFM), 但是这种方法，没有embedding的密集优势
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     feature interaction
+     <br/>
+     仅仅是原始特征很难达到好的效果，所以需要挖掘交叉特征，常见的挖掘交叉特征的方法包括：
+    </p>
+    <ul>
+     <li>
+      FM
+     </li>
+     <li>
+      FFM
+     </li>
+     <li>
+      GBDT(可以学习到高阶交叉，但缺陷在于不能joint training)
+     </li>
+     <li>
+      Product layer(inner product / outer product)(
+      <strong>
+       这里可以借鉴FFM的思路
+      </strong>
+      )
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     hidden layer
+     <br/>
+     鉴于神经网络强悍的特征表示能力，一般都会在最后加几层全连接层学习难以挖掘的高阶交叉特征
+    </p>
+    <ul>
+     <li>
+      可以添加 attention net
+     </li>
+     <li>
+      <strong>
+       抑制过拟合，可以结合SNN的dropout?或者early stopping?
+      </strong>
+     </li>
+     <li>
+      选择合适的optimizer
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     output layer
+     <br/>
+     output layer一般都是sigmoid function
+    </p>
+   </li>
+  </ul>
+  <h2 id="_3">
+   参考文献
+  </h2>
+  <div class="footnote">
+   <hr/>
+   <ol>
+    <li id="fn:1">
+     <p>
+      Rendle, Steffen. “Factorization machines with libfm.” ACM Transactions on Intelligent Systems and Technology (TIST) 3.3 (2012): 57.
+      <a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:2">
+     <p>
+      CHENG H-T, KOC L, HARMSEN J, et al. Wide &amp; deep learning for recommender sys-tems[C] // Proceedings of the 1st Workshop on Deep Learning for Recommender Systems. 2016 : 7 – 10.
+      <a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:3">
+     <p>
+      Jahrer, Michael, et al. “Ensemble of collaborative filtering and feature engineered models for click through rate prediction.” KDDCup Workshop. 2012.
+      <a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:4">
+     <p>
+      MCMAHAN H B, STREETER M. Adaptive bound optimization for online convex opti-mization[J]. arXiv preprint arXiv:1002.4908, 2010.
+      <a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 4 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:5">
+     <p>
+      MCMAHAN H B, HOLT G, SCULLEY D, et al. Ad click prediction: a view from thetrenches[C] // Proceedings of the 19th ACM SIGKDD international conference on Knowl-edge discovery and data mining. 2013 : 1222 – 1230.
+      <a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 5 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:6">
+     <p>
+      HE X, PAN J, JIN O, et al. Practical lessons from predicting clicks on ads at facebook[C]// Proceedings of the Eighth International Workshop on Data Mining for Online Advertising.2014 : 1 – 9.
+      <a class="footnote-backref" href="#fnref:6" rev="footnote" title="Jump back to footnote 6 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:7">
+     <p>
+      Zhang, Yuyu, et al. “Sequential Click Prediction for Sponsored Search with Recurrent Neural Networks.” AAAI. 2014.
+      <a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:8">
+     <p>
+      Liu, Qiang, et al. “A convolutional click prediction model.” Proceedings of the 24th ACM International on Conference on Information and Knowledge Management. ACM, 2015.
+      <a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:9">
+     <p>
+      ZHANG W, DU T, WANG J. Deep learning over multi-field categorical data[C] // Europeanconference on information retrieval. 2016 : 45 – 57.
+      <a class="footnote-backref" href="#fnref:9" rev="footnote" title="Jump back to footnote 9 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:10">
+     <p>
+      QU Y, CAI H, REN K, et al. Product-based neural networks for user response prediction[C]// Data Mining (ICDM), 2016 IEEE 16th International Conference on. 2016 : 1149 – 1154.
+      <a class="footnote-backref" href="#fnref:10" rev="footnote" title="Jump back to footnote 10 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:11">
+     <p>
+      GUO H, TANG R, YE Y, et al. DeepFM: A Factorization-Machine based Neural Networkfor CTR Prediction[J]. arXiv preprint arXiv:1703.04247, 2017.
+      <a class="footnote-backref" href="#fnref:11" rev="footnote" title="Jump back to footnote 11 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:12">
+     <p>
+      HE X, CHUA T-S. Neural Factorization Machines for Sparse Predictive Analytics[J], 2017.
+      <a class="footnote-backref" href="#fnref:12" rev="footnote" title="Jump back to footnote 12 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:13">
+     <p>
+      XIAO J, YE H, HE X, et al. Attentional factorization machines: Learning the weight of feature interactions via attention networks[J]. arXiv preprint arXiv:1708.04617, 2017.
+      <a class="footnote-backref" href="#fnref:13" rev="footnote" title="Jump back to footnote 13 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+    <li id="fn:14">
+     <p>
+      Steffen Rendle (2012): Factorization Machines with libFM, in ACM Trans. Intell. Syst. Technol., 3(3), May.
+      <a class="footnote-backref" href="#fnref:14" rev="footnote" title="Jump back to footnote 14 in the text">
+       ↩
+      </a>
+     </p>
+    </li>
+   </ol>
+  </div>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>
