@@ -53,7 +53,7 @@ $$
 
 ### SNN的结构
 
-![](https://betterxys.github.io/styles/images/ctrfigs/snn_all.png){:height="500"}
+![](https://betterxys.github.io/styles/images/ctrfigs/SNN_PRO.png){:height="500"}
 
 SNN与FNN的区别有两点：
 
