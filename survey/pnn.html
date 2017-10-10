@@ -1,0 +1,308 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+  <h1 id="product-based-neural-networks-for-user-response-prediction">
+   Product-based Neural Networks for User Response Prediction
+  </h1>
+  <h2 id="_1">
+   主要解决的问题
+  </h2>
+  <ul>
+   <li>
+    <p>
+     高维稀疏特征学习： 离散型特征 one-hot-encoding 之后会转换为高维稀疏的二值化特征，导致难以训练学习；
+    </p>
+   </li>
+   <li>
+    <p>
+     交叉特征提取： 交叉特征对于模型性能有很大的影响，交叉特征提取的越充分，模型表现越好；
+    </p>
+   </li>
+  </ul>
+  <p>
+   <strong>
+    <em>
+     这里有个疑问：怎么算是提取到交叉特征了？本文采取inner/outter product两种方式，也就是说其实还存在其它的提取方式？
+    </em>
+   </strong>
+  </p>
+  <h2 id="pnn">
+   PNN 的优势
+  </h2>
+  <ul>
+   <li>
+    无需预训练
+   </li>
+   <li>
+    product layer 应用于 embedded features 学习交叉特征
+   </li>
+   <li>
+    通过全连接的MLP进一步提取高阶交叉特征
+   </li>
+  </ul>
+  <h2 id="pnn_1">
+   PNN 模型结构
+  </h2>
+  <p>
+   <img alt="" height="500" src="https://raw.githubusercontent.com/betterxys/ctr/master/figs/PNN.png"/>
+  </p>
+  <h3 id="output-layer">
+   output layer
+  </h3>
+  <p>
+   输出预测结果
+  </p>
+  <p>
+   <mathjax>
+    $$
+\hat{y} = \sigma(W_3 l_2 +b_3)
+$$
+   </mathjax>
+  </p>
+  <p>
+   其中 \( \sigma \) 是 sigmoid 函数
+  </p>
+  <h3 id="fully-connected-layers">
+   fully connected layers
+  </h3>
+  <p>
+   学习高阶交叉特征
+  </p>
+  <p>
+   <mathjax>
+    $$
+l_2 = relu(W_2 l_1 + b_2)
+$$
+   </mathjax>
+  </p>
+  <p>
+   <mathjax>
+    $$
+l_1 = relu(W_{1z} \bigodot Z + W_{1p} \bigodot P + b_1)
+$$
+   </mathjax>
+  </p>
+  <p>
+   其中 \(L_1\) 层是分别对 product layer 输出的 Z 和 P 与相应的参数 \( W_z , W_p \) 做内积，内积可以定义为：
+  </p>
+  <p>
+   <mathjax>
+    $$
+A \bigodot B := \sum_{i,j} A_{i,j}B_{i,j}
+$$
+   </mathjax>
+  </p>
+  <h3 id="product-layer">
+   product layer
+  </h3>
+  <p>
+   学习交叉特征 P, 并保留原始特征 Z
+  </p>
+  <p>
+   <mathjax>
+    $$
+Z = (z_1, z_2, z_3, ..., z_N) := (f_1, f_2, f_3, ..., f_N) 
+$$
+   </mathjax>
+  </p>
+  <p>
+   对原始特征Z的求解中， f 代表的是各个特征对应的 embedding 向量，所以该式代表的含义是保留原始特征；
+  </p>
+  <p>
+   <mathjax>
+    $$
+P = {product({i, j})}, 其中 i=1...N, j=1...N
+$$
+   </mathjax>
+  </p>
+  <p>
+   对交叉特征P的求解过程可以采用不同的方式，product就是对两个特征进行 点乘/叉乘 运算以获取二阶交叉特征的函数。
+  </p>
+  <p>
+   <strong>
+    <em>
+     在求解P时，双重循环，意味着存在 AA, AB/BA 的情况， 会不会出现问题？
+    </em>
+   </strong>
+  </p>
+  <h3 id="embedding-layer">
+   embedding layer
+  </h3>
+  <p>
+   通过 emdding layer 学习离散特征的分布表示，从 sparse binary 特征转化为 dense real-value 特征
+  </p>
+  <p>
+   <mathjax>
+    $$
+f_i = W_0^i x[start_i : end_i]
+$$
+   </mathjax>
+  </p>
+  <p>
+   其中， \( x[start_i : end_i] \) 代表的是离散特征 i 进行 one hot encoding 之后的一组特征
+  </p>
+  <h2 id="pnn_2">
+   PNN 的训练
+  </h2>
+  <ul>
+   <li>
+    loss function
+   </li>
+  </ul>
+  <p>
+   PNN 采用 log-loss 进行训练
+  </p>
+  <p>
+   <mathjax>
+    $$
+L(y, \hat{y}) = -y log{\hat{y}} - (1-y) log{(1-\hat{y})}
+$$
+   </mathjax>
+  </p>
+  <ul>
+   <li>
+    PNN的复杂度优化
+   </li>
+  </ul>
+  <p>
+   IPNN（采用 inner product 作为 product layer 的 product 函数）借鉴 FM 的思路来优化 内积 的计算；
+  </p>
+  <p>
+   OPNN（采用 outter product 作为 product layer 的 product 函数）借鉴 superposition 的思路优化 外积 的计算；
+  </p>
+  <h2 id="pnn_3">
+   PNN 的验证
+  </h2>
+  <h3 id="_2">
+   验证数据集
+  </h3>
+  <ul>
+   <li>
+    Criteo
+   </li>
+  </ul>
+  <p>
+   从criteo的1T公开数据集中，选择了连续7天的数据作为训练，第8天的数据作为测试集；
+  </p>
+  <p>
+   由于数据量巨大且存在严重的数据倾斜，所以本文对负样本采取下采样的操作，令下采样的比例为w，ctr的预测值为p，则对ctr的预测值进行修正的到修正后的ctr预测值q为：
+   <br/>
+   <mathjax>
+    $$
+    q = \frac{p}{p + \frac{1-p}{w}}
+    $$
+   </mathjax>
+  </p>
+  <p>
+   下采样后共包含 79.38M 的样例，one-hot encoding 后共包含特征 1.64M；
+  </p>
+  <ul>
+   <li>
+    IPinYou
+   </li>
+  </ul>
+  <p>
+   IPinYou提供了10天的广告点击日志记录，共计19.5M的样本，one-hot encoding过后共计937.67k个属性；以最后3天的数据作为测试集；
+  </p>
+  <h3 id="_3">
+   对比验证
+  </h3>
+  <p>
+   本文作者用 tensorflow 实现了7种模型进行对比实验：
+   <br/>
+   LR
+   <br/>
+   FM: 10阶FM (同时所有神经网络模型都采用10阶embedding)
+   <br/>
+   FNN :  1 * embedding layer + 3 * hidden layer
+   <br/>
+   CCPM： 1 * embedding layer + 2 * convolution layer(max pooling) + 1 * hidden layer
+   <br/>
+   IPNN : 1 * embedding layer + 1 * inner-product layer + 3 * hidden layer
+   <br/>
+   OPNN: 1 * embedding layer + 1 * outter-product layer + 3 * hidden layer
+   <br/>
+   PNN*: 1 * embedding layer + 1 * inner+outter product layer + 3 * hidden layer
+  </p>
+  <ul>
+   <li>
+    embedding 采用 10 阶(对比2/10/50/100，最终保留10)
+   </li>
+   <li>
+    采用随机梯度下降的方法进行训练
+   </li>
+   <li>
+    训练 FM / LR 时采用 L2 正则化 防止过拟合
+   </li>
+   <li>
+    训练神经网络时采用 dropout=0.5 防止过拟合
+   </li>
+  </ul>
+  <h3 id="_4">
+   评估指标
+  </h3>
+  <ul>
+   <li>
+    AUC
+   </li>
+   <li>
+    RIG(relative information gain): RIG = 1 - NE(normalized cross entropy)
+   </li>
+   <li>
+    LogLoss
+   </li>
+   <li>
+    RMSE
+   </li>
+  </ul>
+  <h3 id="_5">
+   验证结论
+  </h3>
+  <ul>
+   <li>
+    性能： LR &lt;  FM &lt; FM &lt; NN &lt; PNN
+   </li>
+   <li>
+    PNN* 相对于 IPNN 和  OPNN 并没有太多提升
+   </li>
+   <li>
+    从 learning curve 来看， IPNN / OPNN 收敛较好
+   </li>
+  </ul>
+  <h2 id="future-work">
+   Future work
+  </h2>
+  <ul>
+   <li>
+    设计新的 product layer
+   </li>
+  </ul>
+  <p>
+   <strong>
+    <em>
+     这里有个问题，作者用了不少篇幅介绍其复杂度的优化措施，但是文章当中并没有比较PNN与其他NN模型的性能差异
+    </em>
+   </strong>
+  </p>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>

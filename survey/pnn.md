@@ -17,7 +17,7 @@
 
 ## PNN 模型结构
 
-![](../figs/PNN.png){:height=500}
+![](https://raw.githubusercontent.com/betterxys/ctr/master/figs/PNN.png){:height=500}
 
 
 ### output layer
