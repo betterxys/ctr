@@ -1,0 +1,355 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+  <h1 id="neural-factorization-machines-for-sparse-predictive-analytics">
+   Neural Factorization Machines for Sparse Predictive Analytics
+  </h1>
+  <p>
+   <a href="https://arxiv.org/pdf/1708.05027.pdf">
+    原文链接
+   </a>
+   <br/>
+   <a href="https://github.com/hexiangnan/neural factorization machine">
+    开源代码
+   </a>
+  </p>
+  <h2 id="nfm">
+   NFM 简介
+  </h2>
+  <p>
+   对于拥有高维稀疏特征的预测问题而言， 如何有效地学习到交叉特征是重中之重，FM 可以学习到低阶交叉特征， Google 的 Wide&amp;Deep 模型和 Microsoft 的 DeepCross 模型都是深度模型， 可以学习高高阶交叉特征， 但是难于训练；
+  </p>
+  <p>
+   FM 模型是线性模型, 局限较大, 难以学习高阶/非线性交叉特征；
+   <br/>
+   其余的 DNN 模型, 在 embedding 之后, 都是简单的线性相加, 并没有太大作用；
+  </p>
+  <p>
+   本文提出的 NFM 模型， 将 FM 和神经网络结合起来， 如果去掉隐藏层， NFM 就相当于是一个 FM 模型， 所以 FM 其实可以看做是 NFM 的一种特殊情况， NFM 在 FM 之后添加了几层隐藏层， 在原有 FM 的基础上大大增加了其特征表示能力， 而相对于 Wide&amp;Deep 和 DeepCross 而言， NFM 的隐藏层很浅，所以降低了其计算难度。
+  </p>
+  <p>
+   单隐层的 NFM 比 LibFM 效果增强了 7.3%， 同样强于 3 层的 Wide&amp;Deep 和 10 层的 DeepCross；
+  </p>
+  <h3 id="contributions">
+   contributions
+  </h3>
+  <ul>
+   <li>
+    在神经网络建模过程中应用 Bi-Interaction pooling (Bilinear Interaction pooling)；
+   </li>
+   <li>
+    用神经网络深化 FM 以学习高阶/非线性交叉特征；
+   </li>
+   <li>
+    在两份真实数据上验证 Bi-Interaction pooling 和 NFM 模型；
+   </li>
+  </ul>
+  <p>
+   <strong>
+    其实最主要的优势就是将 FM 和 NN 结合到一起， 相对于 FM 多了隐含层， 相对于其它 NN 模型， 采用了 Bi-Interaction pooling， 而不是简单的加权求和；
+   </strong>
+  </p>
+  <h3 id="_1">
+   提取交叉特征的方法
+  </h3>
+  <p>
+   在缺乏专业领域知识的情况下， 现今提取交叉特征的方法主要分为两类：
+  </p>
+  <ul>
+   <li>
+    FM一类的线性模型；
+   </li>
+   <li>
+    神经网络一类的非线性模型；
+   </li>
+  </ul>
+  <h2 id="nfm_1">
+   NFM 结构
+  </h2>
+  <h3 id="_2">
+   顶层结构
+  </h3>
+  <p>
+   NFM 的结构可以用如下公式代表：
+  </p>
+  <p>
+   <mathjax>
+    $$
+\hat{y}_{NFM}(x) = w_0 + \sum_{i=1}^{n}w_i x_i + f(x)
+$$
+   </mathjax>
+  </p>
+  <p>
+   这是一个总的结构， 第一项 \(w_0\) 是全局偏置量， 第二项是每个特征的加权求和项， 第三项才是本文的关键 NFM 的结构, \(f{(x)}\)的结构图如下图所示：
+  </p>
+  <p>
+   <img alt="" height="500" src="https://betterxys.github.io/styles/images/ctrfigs/NFM.png"/>
+  </p>
+  <h3 id="embedding-layer">
+   Embedding Layer
+  </h3>
+  <p>
+   embedding layer 把原有的每个特征转换为新的 embedding 向量：
+  </p>
+  <p>
+   <mathjax>
+    $$
+V_x = \{x_1 v_1,...,x_n v_n\}
+$$
+   </mathjax>
+  </p>
+  <p>
+   计算时， 只需要包含非零项的 embedding 即可， 即：
+  </p>
+  <p>
+   <mathjax>
+    $$
+V_x = \{x_iv_i\}, where\  x_i \neq 0
+$$
+   </mathjax>
+  </p>
+  <h3 id="bi-interaction-layer">
+   Bi-Interaction Layer
+  </h3>
+  <p>
+   Bi-Interaction 层的作用是将一个 embedding 向量集合转化为一个向量的 pooling 操作：
+  </p>
+  <p>
+   <mathjax>
+    $$
+f_{BI}(V_x) = \sum_{i=1}^n\sum_{j=i+1}^{n} x_i v_i \bigodot x_j v_j
+$$
+   </mathjax>
+  </p>
+  <p>
+   如上式所示， Bi-Interaction 其实是对 embedding 向量两两做 element product, 显而易见， Bi-Interaction layer 的输出是一个 k 维向量（embedding 向量的唯独为 k）；
+  </p>
+  <p>
+   同时，作者参照 FM 的做法， 将计算复杂度从 \( O(kN^2)\) 降低到 \( O(kN) \):
+  </p>
+  <p>
+   <mathjax>
+    $$
+f_{BI}(V_x) = \frac{1}{2} [ (\sum_{i=1}^n x_i v_i)^2 - (\sum_{i=1}^{n}(x_j v_j)^2]
+$$
+   </mathjax>
+  </p>
+  <h3 id="hidden-layer">
+   Hidden Layer
+  </h3>
+  <p>
+   全连接的隐藏层：
+  </p>
+  <p>
+   <mathjax>
+    $$
+z_1 = \sigma_1(W_1f_{BI}(V_x) + b_1)
+$$
+   </mathjax>
+  </p>
+  <p>
+   <mathjax>
+    $$...$$
+   </mathjax>
+  </p>
+  <p>
+   <mathjax>
+    $$
+z_L = \sigma_L(W_Lz_{L-1} + b_L)
+$$
+   </mathjax>
+  </p>
+  <h3 id="prediction-layer">
+   Prediction Layer
+  </h3>
+  <p>
+   <mathjax>
+    $$
+f(x) = h^T z_L
+$$
+   </mathjax>
+  </p>
+  <p>
+   其中， h 是预测神经元的参数
+  </p>
+  <h2 id="nfm_2">
+   NFM 特性
+  </h2>
+  <ul>
+   <li>
+    <p>
+     NFM 去掉 hidden layer 等同于 FM， 所以 FM 可以视为NFM 的一种特殊情况；
+    </p>
+   </li>
+   <li>
+    <p>
+     对 Bi-Interaction layer 应用 dropout 的效果， 要强于 FM 当中的 L2 正则化；
+    </p>
+   </li>
+   <li>
+    <p>
+     与 Wide&amp;Deep 相比， 区别在于 Bi layer, 如果用 concatnation 替换到 Bi layer, NFM 可以复现 Wide &amp; Deep
+    </p>
+   </li>
+  </ul>
+  <h2 id="nfm_3">
+   NFM 训练技巧
+  </h2>
+  <ul>
+   <li>
+    <p>
+     objective function
+    </p>
+    <ul>
+     <li>
+      for regression: squared error
+     </li>
+     <li>
+      for classification:   logloss / hinge loss
+     </li>
+    </ul>
+   </li>
+   <li>
+    <p>
+     optimizer: mini-batch Adagrad
+    </p>
+   </li>
+   <li>
+    <p>
+     Dropout
+     <br/>
+     训练时，随机删除一部分节点，不参与调参，防止过拟合，本文建议在 Bi-Interaction Layer 采用 Dropout, 在实现过程中本文对每个 hidden layer 同样采用了 dropout;
+    </p>
+   </li>
+   <li>
+    <p>
+     Batch Normalization
+     <br/>
+     在训练过程中每层的输入都会随着上层参数的变化而发生变化，所以需要去调整参数适应上层这种变化，导致训练难度增加，BN 将每层的输入转换为一个零均值的高斯分布， 可以更快的收敛并取得更好的效果； 本文在BI层和所有hidden layer都有使用 BN；
+    </p>
+   </li>
+   <li>
+    <p>
+     pre-training
+     <br/>
+     用FM的参数进行初始化，可以加速收敛
+    </p>
+   </li>
+  </ul>
+  <h2 id="_3">
+   实例验证
+  </h2>
+  <h3 id="_4">
+   数据
+  </h3>
+  <ul>
+   <li>
+    Frappe: 手机用户app使用记录，共28w条记录， 5k 特征；
+   </li>
+   <li>
+    MovieLens: 电影推荐信息， 共200w记录， 9w维度；
+   </li>
+  </ul>
+  <h3 id="_5">
+   验证方法
+  </h3>
+  <ul>
+   <li>
+    以 7:2:1 的方式拆分 训练集/验证集/测试集
+   </li>
+   <li>
+    将正例标签设置为1， 负例标签设置为 -1 ， 评估指标为 RMSE
+   </li>
+   <li>
+    baseline: FM / higher-order FM / Wide &amp; Deep / DeepCross
+   </li>
+  </ul>
+  <h3 id="_6">
+   超参设置
+  </h3>
+  <ul>
+   <li>
+    <p>
+     learning rate : [0.005, 0.01, 0.02, 0.05] -&gt; 0.02
+    </p>
+   </li>
+   <li>
+    <p>
+     L2 for FMs: [1e-6, 5e-6, 1e-5, …, 1e-1]
+    </p>
+   </li>
+   <li>
+    <p>
+     dropout: [0, 0.1, 0.2, …, 0.9]  -&gt; 0.3
+    </p>
+   </li>
+   <li>
+    <p>
+     early stopping: 连续 4 个 epoch 的RMSE增加
+    </p>
+   </li>
+   <li>
+    <p>
+     embedding size: 64
+    </p>
+   </li>
+   <li>
+    <p>
+     optimization: FM: vanilla SGD; ohters: mini-batch Adagrad;
+    </p>
+   </li>
+  </ul>
+  <h2 id="future-work">
+   future work
+  </h2>
+  <ul>
+   <li>
+    <strong>
+     resorting to hashing techniques
+    </strong>
+    to make it more suitable for large-scale applications
+   </li>
+  </ul>
+  <p>
+   <strong>
+    这个是啥意思？
+   </strong>
+  </p>
+  <ul>
+   <li>
+    <p>
+     extend the
+     <strong>
+      objective function
+     </strong>
+     with regularizers like the graph Laplacian
+    </p>
+   </li>
+   <li>
+    <p>
+     exploring the BI-Interaction pooling for RNN for sequential data modelling
+    </p>
+   </li>
+  </ul>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>
