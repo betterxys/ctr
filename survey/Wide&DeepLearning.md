@@ -24,7 +24,7 @@ WDL将一个基于cross-product的线性模型（单纯的cross product只能学
 - 以TensorFlow API的形式开源代码
 
 ### Wide&Deep Learning 结构
-![](https://betterxys.github.io/styles/images/ctrfigs//WDL_struc.png){:height=300}
+![](https://betterxys.github.io/styles/images/ctrfigs/WDL_struc.png){:height=300}
 
 如上图所示，左侧是一个单独的线性模型，右侧是单独的深度模型, 中间是两者的联合模型WDL。
 
@@ -74,7 +74,12 @@ $$
 
 数据生成部分主要是从用户属性信息和行为日志当中提取训练数据集，每条数据对应的是一个用户以及该用户想要获取的app，若该用户安装了该app，则对应的标签字段为1，否则为0。
 
-对于字符型的字段，将其映射为整数ID；对于连续型的字段，进行min-max标准化映射到[0, 1]区间内。
+对于字符型的字段，将其映射为整数ID；对于连续型的字段，根据其 cumulative distribution function 映射到 [0, 1] 区间内， 假设将之离散化为 n 个字段，则每个字段的边界可以表示为：
+
+$$
+\frac{i - 1}{n - 1}
+$$
+
 
 #### Model Training
 

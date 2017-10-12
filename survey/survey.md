@@ -170,6 +170,7 @@ $$
 >	MovieLens: (2006859 instances, 90445 features)
 >       train: validation:test 9:2:1
 > **evaluation**： RMSE compare with FM/High order FM/Wide&Deep/DeepCross
+> **code**: https://github.com/hexiangnan/neural factorization machine
 
 
 
