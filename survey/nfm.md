@@ -1,7 +1,7 @@
 #  Neural Factorization Machines for Sparse Predictive Analytics
 
 [原文链接](https://arxiv.org/pdf/1708.05027.pdf)
-[开源代码](https://github.com/hexiangnan/neural factorization machine)
+[开源代码](https://github.com/hexiangnan/)
 
 ## NFM 简介
 
