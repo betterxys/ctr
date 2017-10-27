@@ -56,6 +56,11 @@
          </a>
         </li>
         <li>
+         <a href="#learning-rate">
+          learning rate
+         </a>
+        </li>
+        <li>
          <a href="#afm-vs-nfm-vs-fm">
           AFM vs NFM vs FM
          </a>
@@ -140,7 +145,7 @@
    </li>
    <li>
     <p>
-     Attention Based Pooling: 将每个 interaction 的 k 维向量作为 attention net 的输入， attention net由一层 hidden layer 和一层拥有 k 个节点的 output layer 构成， attention net 的输出是 k 维向量， 代表着 input interaction 的 k 个元素分别对应的权重， 将 attention net 的输出与 interaction进行 element product, 并求和，作为输出；
+     Attention Based Pooling: 这一部分主要是通过 attention net 计算出 feature interaction 对应的 attention score， 该分数代表每个 feature interaction 对应的权重；
     </p>
    </li>
    <li>
@@ -150,13 +155,10 @@
    </li>
   </ul>
   <p>
-   chenglong 对 attention based pooling 进行改进：
+   chenglong 对 attention based pooling 中 attention score 的计算方式进行改进：
   </p>
   <p>
-   原文 attention net 的输入是单个 feature interaction 的 k 维 embedding， 所以 attention 起到的作用是对每个 feature interaction 进行一个 pooling 操作， 其输出影响的是每个 feature interaction 内部 k 个维度在进行 sum pooling 时的权重；
-  </p>
-  <p>
-   而 chenglong 的做法是先对每个 feature interaction 做 pooling 操作， 得到 n(n-1)/2个 scale, 然后将这 n(n-1)/2 个 scale 输入 attention net , 此时, attention net 的输出其实是这 n(n-1)/2 个scale feature interaction 进行 pooling 操作时的权重， 这样更符合原文希望剔除无用 interactions 的干扰的愿景；
+   原文 attention net的输入是一个 feature interaction 的 embedding 向量， 输出的 attention score 就是该 interaction 对应的权重，但这种方式仅仅根据当前输入的 interaction 来确定其对应的 attention score , 并没有考虑其它 feature interaction 对该 interaction 的影响； chenglong 在此基础上， 对这部分的结构进行修改， 首先对每个 interaction 都进行一个 sum pooling 操作， 将 featuer interaction 的 embedding 转换为一个对应的 scalar， 再将所有的 scalar 作为 attention net 的输入， 综合考虑所有 feature interaction, 计算出所有 interaction 对应的 attention score.
   </p>
   <h3 id="_3">
    实验
@@ -1784,11 +1786,22 @@
   <p>
    embedding 越大， 收敛越快， 效果越好
   </p>
+  <h4 id="learning-rate">
+   learning rate
+  </h4>
+  <p>
+   <img alt="" src="https://betterxys.github.io/styles/images/ctrfigs/afm_learning_rate.png"/>
+   <br/>
+   显然，采用 adagrad 作为 optimizer,  lr = 0.05 时 远胜于 lr=0.001
+  </p>
   <h4 id="afm-vs-nfm-vs-fm">
    AFM vs NFM vs FM
   </h4>
   <p>
    设置 hidden layer = 64, embedding = 128, batch = 128, lr = 0.05, optimizer = adagrad 对比 NFM 和 AFM 模型效果；
+  </p>
+  <p>
+   <img alt="" height="700," src="https://betterxys.github.io/styles/images/ctrfigs/afmVSnfm.png" width="1000"/>
   </p>
   <table>
    <thead>
@@ -1811,6 +1824,9 @@
      <th>
       valid
      </th>
+     <th>
+      test
+     </th>
     </tr>
    </thead>
    <tbody>
@@ -1825,53 +1841,16 @@
       702599
      </td>
      <td>
-      20
+      39
      </td>
      <td>
-      0.1461
+      0.0927
      </td>
      <td>
-      0.3299
-     </td>
-    </tr>
-    <tr>
-     <td>
-      NFM
+      0.3142
      </td>
      <td>
-      -
-     </td>
-     <td>
-      702599
-     </td>
-     <td>
-      50
-     </td>
-     <td>
-      0.0858
-     </td>
-     <td>
-      0.3136
-     </td>
-    </tr>
-    <tr>
-     <td>
-      NFM
-     </td>
-     <td>
-      -
-     </td>
-     <td>
-      702599
-     </td>
-     <td>
-      100
-     </td>
-     <td>
-      0.0723
-     </td>
-     <td>
-      0.3086
+      0.3215
      </td>
     </tr>
     <tr>
@@ -1879,47 +1858,7 @@
       AFM
      </td>
      <td>
-      1
-     </td>
-     <td>
-      702727
-     </td>
-     <td>
-      20
-     </td>
-     <td>
-      0.1518
-     </td>
-     <td>
-      0.3551
-     </td>
-    </tr>
-    <tr>
-     <td>
-      AFM
-     </td>
-     <td>
-      1
-     </td>
-     <td>
-      702727
-     </td>
-     <td>
-      50
-     </td>
-     <td>
-      0.1237
-     </td>
-     <td>
-      0.3446
-     </td>
-    </tr>
-    <tr>
-     <td>
-      AFM
-     </td>
-     <td>
-      1
+      paper
      </td>
      <td>
       702727
@@ -1928,30 +1867,13 @@
       100
      </td>
      <td>
-      0.1114
+      0.1112
      </td>
      <td>
-      0.3423
-     </td>
-    </tr>
-    <tr>
-     <td>
-      AFM
+      0.3408
      </td>
      <td>
-      2
-     </td>
-     <td>
-      700231
-     </td>
-     <td>
-      20
-     </td>
-     <td>
-      0.0857
-     </td>
-     <td>
-      0.3324
+      0.3443
      </td>
     </tr>
     <tr>
@@ -1959,79 +1881,22 @@
       AFM
      </td>
      <td>
-      2
+      chenglong
      </td>
      <td>
       700231
      </td>
      <td>
-      50
+      44
      </td>
      <td>
-      0.0562
+      0.0743
      </td>
      <td>
-      0.3531
-     </td>
-    </tr>
-    <tr>
-     <td>
-      AFM
+      0.3217
      </td>
      <td>
-      2
-     </td>
-     <td>
-      700231
-     </td>
-     <td>
-      100
-     </td>
-     <td>
-      0.0294
-     </td>
-     <td>
-      0.3436
-     </td>
-    </tr>
-    <tr>
-     <td>
-      FM
-     </td>
-     <td>
-      -
-     </td>
-     <td>
-      694279
-     </td>
-     <td>
-      20
-     </td>
-     <td>
-      0.4484
-     </td>
-     <td>
-      0.4965
-     </td>
-    </tr>
-    <tr>
-     <td>
-      FM
-     </td>
-     <td>
-      -
-     </td>
-     <td>
-      694279
-     </td>
-     <td>
-      50
-     </td>
-     <td>
-      0.3641
-     </td>
-     <td>
-      0.4482
+      0.3278
      </td>
     </tr>
     <tr>
@@ -2048,16 +1913,19 @@
       100
      </td>
      <td>
-      0.3078
+      0.2789
      </td>
      <td>
-      0.4226
+      0.4080
+     </td>
+     <td>
+      0.4164
      </td>
     </tr>
    </tbody>
   </table>
   <p>
-   结论： 在数据集 frappe 上， 相同参数设置下， NFM 的效果要强于 AFM ， NFM 和 AFM 都要强过 FM； 而 chenglong 改进过的 AFM 明显在训练集上可以更快的收敛， 但却存在过拟合的问题；
+   结论： 在数据集 frappe 上， 相同参数设置下， NFM 的效果要强于 AFM ， NFM 和 AFM 都要强过 FM； 而 chenglong 改进过的 AFM 在验证集上的表现最好；
   </p>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
   </script>

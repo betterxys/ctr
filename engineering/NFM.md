@@ -34,16 +34,14 @@ AFM 的主要结构：
 
 - Pair-wise Interaction Layer: 两两 element product, 输出 n(n-1)/2 个 k 维向量；
 
-- Attention Based Pooling: 将每个 interaction 的 k 维向量作为 attention net 的输入， attention net由一层 hidden layer 和一层拥有 k 个节点的 output layer 构成， attention net 的输出是 k 维向量， 代表着 input interaction 的 k 个元素分别对应的权重， 将 attention net 的输出与 interaction进行 element product, 并求和，作为输出；
+- Attention Based Pooling: 这一部分主要是通过 attention net 计算出 feature interaction 对应的 attention score， 该分数代表每个 feature interaction 对应的权重；
 
 - prediction layer: 对全局偏置量、线性加权和、attention based pooling 求和；
 
 
-chenglong 对 attention based pooling 进行改进：
+chenglong 对 attention based pooling 中 attention score 的计算方式进行改进：
 
-原文 attention net 的输入是单个 feature interaction 的 k 维 embedding， 所以 attention 起到的作用是对每个 feature interaction 进行一个 pooling 操作， 其输出影响的是每个 feature interaction 内部 k 个维度在进行 sum pooling 时的权重；
-
-而 chenglong 的做法是先对每个 feature interaction 做 pooling 操作， 得到 n(n-1)/2个 scale, 然后将这 n(n-1)/2 个 scale 输入 attention net , 此时, attention net 的输出其实是这 n(n-1)/2 个scale feature interaction 进行 pooling 操作时的权重， 这样更符合原文希望剔除无用 interactions 的干扰的愿景；
+原文 attention net的输入是一个 feature interaction 的 embedding 向量， 输出的 attention score 就是该 interaction 对应的权重，但这种方式仅仅根据当前输入的 interaction 来确定其对应的 attention score , 并没有考虑其它 feature interaction 对该 interaction 的影响； chenglong 在此基础上， 对这部分的结构进行修改， 首先对每个 interaction 都进行一个 sum pooling 操作， 将 featuer interaction 的 embedding 转换为一个对应的 scalar， 再将所有的 scalar 作为 attention net 的输入， 综合考虑所有 feature interaction, 计算出所有 interaction 对应的 attention score.
 
 
 ### 实验
@@ -147,24 +145,24 @@ hidden  layer 的节点数目对结果并无太大影响
 embedding 越大， 收敛越快， 效果越好
 
 
+#### learning rate
+
+![](https://betterxys.github.io/styles/images/ctrfigs/afm_learning_rate.png)
+显然，采用 adagrad 作为 optimizer,  lr = 0.05 时 远胜于 lr=0.001
+
     
 #### AFM vs NFM vs FM
 
-设置 hidden layer = 64, embedding = 128, batch = 128, lr = 0.05, optimizer = adagrad 对比 NFM 和 AFM 模型效果；  
+设置 hidden layer = 64, embedding = 128, batch = 128, lr = 0.05, optimizer = adagrad 对比 NFM 和 AFM 模型效果；
 
-model |  attention | param | epoch | train | valid
- -  |   -  |  -  |  -  |  - | -
-NFM     | -          |      702599      | 20        | 0.1461 | 0.3299
-NFM     | -          |      702599      | 50        | 0.0858 | 0.3136
-NFM     | -          |      702599      | 100      | 0.0723 | 0.3086
-AFM     | 1          |      702727      | 20        | 0.1518 | 0.3551
-AFM     | 1          |      702727      | 50        | 0.1237 | 0.3446
-AFM     | 1          |      702727      | 100      | 0.1114 | 0.3423
-AFM     | 2          |      700231      | 20        | 0.0857 | 0.3324
-AFM     | 2          |      700231      | 50        | 0.0562 | 0.3531
-AFM     | 2          |      700231      | 100      | 0.0294 | 0.3436
-FM       | -          |      694279      | 20        | 0.4484 | 0.4965
-FM       | -          |      694279      | 50        | 0.3641 | 0.4482
-FM       | -          |      694279      | 100      | 0.3078 | 0.4226
+![](https://betterxys.github.io/styles/images/ctrfigs/afmVSnfm.png){:height=700, width=1000}
 
-结论： 在数据集 frappe 上， 相同参数设置下， NFM 的效果要强于 AFM ， NFM 和 AFM 都要强过 FM； 而 chenglong 改进过的 AFM 明显在训练集上可以更快的收敛， 但却存在过拟合的问题；
+
+model |  attention | param | epoch | train | valid | test
+ -  |   -  |  -  |  -  |  - | - | -
+NFM     | -          |      702599      | 39      | 0.0927 | 0.3142 | 0.3215 
+AFM     | paper          |      702727      | 100      | 0.1112 | 0.3408 | 0.3443
+AFM     | chenglong          |      700231      | 44      | 0.0743 | 0.3217 | 0.3278
+FM       | -          |      694279      | 100      | 0.2789 | 0.4080 | 0.4164
+
+结论： 在数据集 frappe 上， 相同参数设置下， NFM 的效果要强于 AFM ， NFM 和 AFM 都要强过 FM； 而 chenglong 改进过的 AFM 在验证集上的表现最好；
